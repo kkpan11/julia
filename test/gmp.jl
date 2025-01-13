@@ -220,6 +220,8 @@ end
 end
 @testset "combinatorics" begin
     @test factorial(BigInt(40)) == parse(BigInt,"815915283247897734345611269596115894272000000000")
+    @test_throws DomainError factorial(BigInt(-1))
+    @test_throws DomainError factorial(BigInt(rand(-999:-2)))
     @test binomial(BigInt(1), -1) == BigInt(0)
     @test binomial(BigInt(1), 2)  == BigInt(0)
     @test binomial(BigInt(-53), 42) == parse(BigInt,"959509335087854414441273718")
@@ -464,6 +466,34 @@ end
             @test_throws typeof(int8_res) big(i)^big(j)
         end
     end
+end
+
+@testset "modular invert" begin
+    # test invert is correct and does not mutate
+    a = BigInt(3)
+    b = BigInt(7)
+    i = BigInt(5)
+    @test Base.GMP.MPZ.invert(a, b) == i
+    @test a == BigInt(3)
+    @test b == BigInt(7)
+
+    # test in place invert does mutate first argument
+    a = BigInt(3)
+    b = BigInt(7)
+    i = BigInt(5)
+    i_inplace = BigInt(3)
+    Base.GMP.MPZ.invert!(i_inplace, b)
+    @test i_inplace == i
+
+    # test in place invert does mutate only first argument
+    a = BigInt(3)
+    b = BigInt(7)
+    i = BigInt(5)
+    i_inplace = BigInt(0)
+    Base.GMP.MPZ.invert!(i_inplace, a, b)
+    @test i_inplace == i
+    @test a == BigInt(3)
+    @test b == BigInt(7)
 end
 
 @testset "math ops returning BigFloat" begin
